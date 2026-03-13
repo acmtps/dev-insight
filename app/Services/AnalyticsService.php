@@ -14,7 +14,7 @@ class AnalyticsService
 
             if ($repo['language']) {
                 $languages[$repo['language']] = 
-                    ($languages[$repo['language']]) + 1;
+                    ($languages[$repo['language']] ?? 0) + 1;
             }
 
             $stars += $repo['stargazers_count'];
