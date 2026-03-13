@@ -52,18 +52,6 @@ Redis Cache
 ### Clone Repository
 
 ```bash
-git clone https://github.com/acmtps/devinsight
-cd devinsight
-```
-
----
-
-
-## Installation
-
-### Clone Repository
-
-```bash
 git clone https://github.com/acmtps/dev-insight.git
 cd dev-insight
 ```
