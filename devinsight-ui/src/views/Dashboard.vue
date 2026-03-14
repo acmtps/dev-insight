@@ -1,6 +1,6 @@
 <template>
 
-    <div class="min-h-screen bg-gray-50 p-10">
+    <div class="min-h-screen bg-gray-50 px-10 py-12 max-w-7xl mx-auto">
 
         <h1 class="text-3xl font-bold mb-8">
             DevInsight Dashboard
@@ -62,29 +62,29 @@
 
         <!-- CHART + HEATMAP -->
 
-        <div class="grid grid-cols-2 gap-8 mb-10">
+        <div v-if="analysis" class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
 
             <!-- LANGUAGE CHART -->
 
-            <div class="bg-white p-6 rounded shadow">
+            <div class="bg-white p-6 rounded-xl shadow-md">
 
-                <h2 class="text-lg mb-4">
+                <h2 class="text-xl font-semibold mb-4">
                     Language Distribution
                 </h2>
 
-                <v-chart class="h-80" :option="languageChart" />
+                <v-chart class="h-[420px] w-full" :option="languageChart" autoresize />
 
             </div>
 
             <!-- CONTRIBUTION HEATMAP -->
 
-            <div class="bg-white p-6 rounded shadow">
+            <div class="bg-white p-6 rounded-xl shadow-md">
 
-                <h2 class="text-lg mb-4">
+                <h2 class="text-xl font-semibold mb-4">
                     Contribution Activity
                 </h2>
 
-                <v-chart class="h-80" :option="heatmapChart" />
+                <v-chart class="h-[420px] w-full" :option="heatmapChart" />
 
             </div>
 
@@ -173,21 +173,34 @@ const analyze = async () => {
 
 function renderLanguageChart() {
 
-    const labels = Object.keys(analysis.value.top_languages)
-    const values = Object.values(analysis.value.top_languages)
+    const data = Object.entries(
+        analysis.value.top_languages
+    ).map(([name, value]) => ({
+        name,
+        value
+    }))
 
     languageChart.value = {
 
-        tooltip: { trigger: 'item' },
+        tooltip: {
+            trigger: "item"
+        },
+
+        legend: {
+            orient: "vertical",
+            right: 10,
+            top: "center"
+        },
 
         series: [
             {
-                type: 'pie',
-                radius: '70%',
-                data: labels.map((l, i) => ({
-                    value: values[i],
-                    name: l
-                }))
+                type: "pie",
+                radius: ["40%", "75%"],
+                center: ["35%", "50%"],
+                data: data,
+                label: {
+                    formatter: "{b}"
+                }
             }
         ]
 
@@ -197,23 +210,64 @@ function renderLanguageChart() {
 
 function renderHeatmap() {
 
+    const data = []
+
+    for (let day = 0; day < 7; day++) {
+        for (let week = 0; week < 12; week++) {
+
+            data.push([
+                week,
+                day,
+                Math.floor(Math.random() * 10)
+            ])
+
+        }
+    }
+
     heatmapChart.value = {
 
         tooltip: {},
 
+        grid: {
+            height: "65%",
+            top: "10%"
+        },
+
+        xAxis: {
+            type: "category",
+            data: [
+                "W1", "W2", "W3", "W4",
+                "W5", "W6", "W7", "W8",
+                "W9", "W10", "W11", "W12"
+            ]
+        },
+
+        yAxis: {
+            type: "category",
+            data: [
+                "Mon", "Tue", "Wed",
+                "Thu", "Fri", "Sat", "Sun"
+            ]
+        },
+
         visualMap: {
             min: 0,
             max: 10,
-            orient: 'horizontal'
+            orient: "horizontal",
+            left: "center",
+            bottom: 0
         },
 
         series: [
             {
-                type: 'heatmap',
-                data: [
-                    [0, 0, 1], [0, 1, 3], [0, 2, 5],
-                    [1, 0, 2], [1, 1, 6], [1, 2, 4]
-                ]
+                type: "heatmap",
+                data: data,
+                emphasis: {
+                    itemStyle: {
+                        borderColor: "#333",
+                        borderWidth: 1
+                    }
+                }
             }
         ]
 

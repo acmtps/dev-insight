@@ -1,18 +1,43 @@
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
+import { createApp } from "vue";
+import { createPinia } from "pinia";
 
-import App from './App.vue'
-import router from './router'
+import App from "./App.vue";
+import router from "./router";
 
-import './assets/main.css';
+import "./assets/main.css";
 
-import VueECharts from 'vue-echarts'
+import VueECharts from "vue-echarts";
 
-const app = createApp(App)
+import { use } from "echarts/core";
 
-app.component("v-chart", VueECharts)
+import { PieChart, HeatmapChart } from "echarts/charts";
 
-app.use(createPinia())
-app.use(router)
+import {
+    TitleComponent,
+    TooltipComponent,
+    LegendComponent,
+    GridComponent,
+    VisualMapComponent,
+} from "echarts/components";
 
-app.mount('#app')
+import { CanvasRenderer } from "echarts/renderers";
+
+use([
+    PieChart,
+    HeatmapChart,
+    TitleComponent,
+    TooltipComponent,
+    LegendComponent,
+    GridComponent,
+    VisualMapComponent,
+    CanvasRenderer,
+]);
+
+const app = createApp(App);
+
+app.component("v-chart", VueECharts);
+
+app.use(createPinia());
+app.use(router);
+
+app.mount("#app");
