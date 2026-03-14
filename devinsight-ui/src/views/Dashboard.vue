@@ -1,118 +1,224 @@
 <template>
 
-    <div class="min-h-screen bg-gray-100 p-10">
+    <div class="min-h-screen bg-gray-50 p-10">
 
-        <h1 class="text-3xl font-bold mb-6">
-            DevInsight
+        <h1 class="text-3xl font-bold mb-8">
+            DevInsight Dashboard
         </h1>
 
-        <div class="flex gap-3 mb-8">
+        <!-- SEARCH -->
 
-            <input 
-                v-model="username" 
-                class="border p-3 rounded w-64" 
-                placeholder="GitHub username" 
-            />
+        <div class="flex gap-4 mb-8">
 
-            <button 
-                @click="analyze" 
-                class="bg-blue-600 text-white px-4 py-3 rounded">
+            <input v-model="username" placeholder="GitHub username" class="border p-3 rounded w-64" />
+
+            <button @click="analyze" class="bg-blue-600 text-white px-5 py-3 rounded">
                 Analyze
             </button>
 
         </div>
 
-        <div v-if="profile" class="grid grid-cols-3 gap-6 mb-10">
+        <!-- ANALYTICS CARDS -->
 
-            <div class="bg-white p-5 rounded shadow">
-                <img 
-                    :src="profile.avatar_url" 
-                    lass="w-16 rounded-full mb-2" 
-                />
-                <h2 class="text-xl font-semibold">{{ profile.name }}</h2>
-                <p class="text-gray-600">{{ profile.bio }}</p>
-            </div>
+        <div v-if="analysis" class="grid grid-cols-4 gap-6 mb-10">
 
-            <div class="bg-white p-5 rounded shadow">
-                <h3 class="text-gray-500">Developer Score</h3>
-                <p class="text-3xl font-bold">
-                    {{ analysis.developer_score }}
-                </p>
-            </div>
+            <div class="bg-white p-6 rounded shadow">
 
-            <div class="bg-white p-5 rounded shadow">
-                <h3 class="text-gray-500">Repositories</h3>
-                <p class="text-3xl font-bold">
+                <p class="text-gray-500">Repositories</p>
+                <h2 class="text-3xl font-bold">
                     {{ analysis.repo_count }}
-                </p>
+                </h2>
+
             </div>
+
+            <div class="bg-white p-6 rounded shadow">
+
+                <p class="text-gray-500">Stars</p>
+                <h2 class="text-3xl font-bold">
+                    {{ analysis.total_stars }}
+                </h2>
+
+            </div>
+
+            <div class="bg-white p-6 rounded shadow">
+
+                <p class="text-gray-500">Forks</p>
+                <h2 class="text-3xl font-bold">
+                    {{ analysis.total_forks }}
+                </h2>
+
+            </div>
+
+            <div class="bg-white p-6 rounded shadow">
+
+                <p class="text-gray-500">Developer Score</p>
+                <h2 class="text-3xl font-bold text-blue-600">
+                    {{ analysis.developer_score }}
+                </h2>
+
+            </div>
+
         </div>
 
-        <div v-if="analysis" class="bg-white p-6 rounded shadow">
-            <h2 class="text-xl mb-4">
-                Language Distribution
+        <!-- CHART + HEATMAP -->
+
+        <div class="grid grid-cols-2 gap-8 mb-10">
+
+            <!-- LANGUAGE CHART -->
+
+            <div class="bg-white p-6 rounded shadow">
+
+                <h2 class="text-lg mb-4">
+                    Language Distribution
+                </h2>
+
+                <v-chart class="h-80" :option="languageChart" />
+
+            </div>
+
+            <!-- CONTRIBUTION HEATMAP -->
+
+            <div class="bg-white p-6 rounded shadow">
+
+                <h2 class="text-lg mb-4">
+                    Contribution Activity
+                </h2>
+
+                <v-chart class="h-80" :option="heatmapChart" />
+
+            </div>
+
+        </div>
+
+        <!-- REPOSITORY TABLE -->
+
+        <div v-if="repos.length" class="bg-white p-6 rounded shadow">
+
+            <h2 class="text-lg mb-4">
+                Repositories
             </h2>
 
-            <canvas id="langChart"></canvas>
+            <table class="w-full text-left">
+
+                <thead>
+
+                    <tr class="border-b">
+
+                        <th class="py-2">Name</th>
+                        <th>Language</th>
+                        <th>Stars</th>
+                        <th>Forks</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr v-for="repo in repos" :key="repo.id" class="border-b">
+
+                        <td class="py-2">
+                            {{ repo.name }}
+                        </td>
+
+                        <td>
+                            {{ repo.language }}
+                        </td>
+
+                        <td>
+                            {{ repo.stargazers_count }}
+                        </td>
+
+                        <td>
+                            {{ repo.forks_count }}
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
         </div>
+
     </div>
 
 </template>
 
 <script setup>
 
-import { ref } from 'vue';
-import axios from 'axios';
-import { Chart, PieController, ArcElement, Tooltip, Legend } from 'chart.js';
-import api from '@/services/api';
-import { nextTick } from 'vue';
-
-Chart.register(
-    PieController,
-    ArcElement,
-    Tooltip,
-    Legend
-)
+import { ref } from "vue"
+import api from "../services/api"
 
 const username = ref("")
 const profile = ref(null)
 const analysis = ref(null)
+const repos = ref([])
+
+const languageChart = ref({})
+const heatmapChart = ref({})
 
 const analyze = async () => {
+
     const res = await api.get("/analyze/" + username.value)
 
     profile.value = res.data.profile
     analysis.value = res.data.analysis
+    repos.value = res.data.repos
 
-    await renderChart()
+    renderLanguageChart()
+    renderHeatmap()
+
 }
 
-let chart = null
+function renderLanguageChart() {
 
-async function renderChart(){
+    const labels = Object.keys(analysis.value.top_languages)
+    const values = Object.values(analysis.value.top_languages)
 
- await nextTick()
+    languageChart.value = {
 
- if(chart){
-  chart.destroy()
- }
+        tooltip: { trigger: 'item' },
 
- const labels = Object.keys(analysis.value.top_languages)
- const values = Object.values(analysis.value.top_languages)
+        series: [
+            {
+                type: 'pie',
+                radius: '70%',
+                data: labels.map((l, i) => ({
+                    value: values[i],
+                    name: l
+                }))
+            }
+        ]
 
- const ctx = document.getElementById('langChart')
+    }
 
- chart = new Chart(ctx,{
-   type:'pie',
-   data:{
-     labels:labels,
-     datasets:[
-       {
-         label:'Languages',
-         data:values
-       }
-     ]
-   }
- })
 }
+
+function renderHeatmap() {
+
+    heatmapChart.value = {
+
+        tooltip: {},
+
+        visualMap: {
+            min: 0,
+            max: 10,
+            orient: 'horizontal'
+        },
+
+        series: [
+            {
+                type: 'heatmap',
+                data: [
+                    [0, 0, 1], [0, 1, 3], [0, 2, 5],
+                    [1, 0, 2], [1, 1, 6], [1, 2, 4]
+                ]
+            }
+        ]
+
+    }
+
+}
+
 </script>
