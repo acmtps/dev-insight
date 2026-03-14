@@ -7,19 +7,35 @@ use Illuminate\Support\Facades\Cache;
 
 class GithubRepository
 {
-    private $base = "https://api.github.com";
-
-    public function getRepos(string $username)
+    public function getUserRepos(string $username)
     {
         return Cache::remember(
-            "github_repos_$username",
+            "repos_$username",
             3600,
             function () use ($username) {
 
-                return HTTP::get(
-                    "$this->base/users/$username/repos"
-                )->json();
+                $response =  Http::withHeaders([
+                    'Authorization' => 'Bearer ' . config('services.github.token'),
+                    'Accept' => 'application/vnd.github+json',
+                ])->get(config('services.github.base_url')."/users/$username/repos");
+                
+                // Check if we hit the rate limit (403 Forbidden)
+                if ($response->status() === 403 && $response->header('X-RateLimit-Remaining') == 0) {
+                    return response()->json(['error' => 'Rate limit exceeded. Try again later.'], 429);
+                }
+
+                if ($response->failed()) {
+                    return [];
+                }
+
+                return $response->json();
             }
         );
+    }
+
+    public function getUser(string $username)
+    {
+        return Http::get(config('services.github.base_url')."/users/$username")->json();
+                
     }
 }

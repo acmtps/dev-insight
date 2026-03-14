@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Services\GithubService;
 use App\Services\AnalyticsService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+
 
 class AnalyticsController extends Controller
 {
@@ -13,10 +15,18 @@ class AnalyticsController extends Controller
         GithubService $github,
         AnalyticsService $analytics
     ){
-        $repos = $github->getUserRepos($username);
+        $data = $github->fetchUserData($username);
+        $analysis = $analytics->analyze($data['repos']);
 
-        $data = $analytics->analyze($repos);
+        return response()->json([
+            'profile' => $data['user'],
+            'analysis' => $analysis
+        ]);
+    }
 
-        return response()->json($data);
+    public function contributions($username)
+    {
+        $data = Http::get(config('services.github.contribution_api_url')."/$username");
+        return response()->json($data->json());
     }
 }

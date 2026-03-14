@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'github' => [
+        'token' => env('GITHUB_TOKEN'),
+        'base_url' => 'https://api.github.com',
+        'contribution_api_url' => 'https://github-contributions-api.jogruber.de/v4',
+    ],
+
 ];
