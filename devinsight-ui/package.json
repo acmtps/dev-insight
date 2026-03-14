@@ -11,11 +11,17 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@tailwindcss/vite": "^4.2.1",
+    "@vueuse/core": "^14.2.1",
     "axios": "^1.13.6",
     "chart.js": "^4.5.1",
+    "dayjs": "^1.11.20",
+    "echarts": "^6.0.0",
     "heroicons": "^2.2.0",
+    "lucide-vue-next": "^0.577.0",
     "pinia": "^3.0.4",
+    "shadcn-vue": "^2.4.3",
     "vue": "^3.5.29",
+    "vue-echarts": "^8.0.1",
     "vue-router": "^5.0.3",
     "vue3-calendar-heatmap": "^2.0.5"
   },
