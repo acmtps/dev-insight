@@ -20,7 +20,8 @@ class AnalyticsController extends Controller
 
         return response()->json([
             'profile' => $data['user'],
-            'analysis' => $analysis
+            'analysis' => $analysis,
+            'repos' => $data['repos'],
         ]);
     }
 
